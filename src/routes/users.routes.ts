@@ -5,22 +5,19 @@ import uploadConfig from '../config/upload';
 import CreateUserService from '../services/CreateUserService';
 import ensureAuthenticated from '../middlewares/ensureAuthenticated';
 import UpdatedUserAvatarService from '../services/UpdatedUserAvatarService';
+import { CreateUserDto } from '../utils/dto/createUserDto';
 
 const usersRouter = Router();
 const upload = multer(uploadConfig);
 
 usersRouter.post('/', async (request, response) => {
-  const { name, email, password } = request.body;
-
+  const createUserDto: CreateUserDto = request.body;
   const createUser = new CreateUserService();
 
-  const user = await createUser.execute({
-    name,
-    email,
-    password,
-  });
+  const user = await createUser.execute(createUserDto);
 
   delete user.password;
+  delete user.salt;
 
   return response.json(user);
 });
@@ -36,6 +33,7 @@ usersRouter.patch(
       avatarFilename: request.file.filename,
     });
 
+    delete user.salt;
     delete user.password;
 
     return response.json(user);
